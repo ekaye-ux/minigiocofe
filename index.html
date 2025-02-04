@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Room VR - Aula</title>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-event-set-component@5.0.0/dist/aframe-event-set-component.min.js"></script>
+    <script src="https://unpkg.com/super-hands@^3.0.3/dist/super-hands.min.js"></script>
+    <script src="https://unpkg.com/aframe-super-keyboard/dist/aframe-super-keyboard.min.js"></script>
+    <script src="common.js"></script>
+</head>
+
+<body>
+    <a-scene stats="true" vr-mode-ui="enabled: false" renderer="antialias: true">
+        <a-entity progressive-controls></a-entity>
+        <!-- Assets -->
+        <a-asset-item id="macbook" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/macbook_psx_style.glb?v=1737380927278" preload="true"></a-asset-item>
+        <a-asset-item id="classroom" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/3dpea.com_classroom_demoscene.glb?v=1737380908118" preload="true"></a-asset-item>
+        <a-assets>
+            <audio id="page-sound" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/index.mp3?v=1737670718764" preload="auto"></audio>
+        </a-assets>
+
+        <!--Setup ambiente-->
+
+        <!-- Posizione modello nella scena -->
+        <!-- Muri e pavimento -->
+        <a-entity gltf-model="#classroom" position="0.13852 0.27152 -0.14756" scale="1 1 1"></a-entity>
+        <!-- Lavagna -->
+       <a-box id="exitBox" position="0.31 1.86 4.76" scale="-0.16 1.14 4.7" color="green" opacity="0.5" class="clickable" onclick="goToArtRoom()" rotation="0.9330000000000002 90.43565838344914 0.4068000345428845" visible="false"></a-box>
+        <!-- PC -->
+        <a-box position="-3.1 1.81 4.74" rotation="0.0005729577951308233 -82.3844554462708 0" scale="-0.18 0.73 1.22"
+            color="white" opacity="0.5" class="clickable" onclick="showRiddle()" visible="false"></a-box>
+        <a-entity gltf-model="#macbook" position="0.884 1.120 -0.140" rotation="0 1.151 0" scale=""
+            class="clickable" onclick="startLaptopEnigma()"></a-entity>
+        <!-- TV -->
+        <a-box position="2.91 1.64 3.11" rotation="3.2985180265681495 106.50082200112229 -0.6571825910150542"
+            scale="0.84 0.61 0.57" color="red" opacity="0.5" class="clickable" onclick="showQuestion()"
+            visible="false"></a-box>
+        <!-- Telecamera -->
+        <a-camera position="1.5 2 9">
+            <a-cursor id="cursor" raycaster="objects: .clickable" color="#FF0000"></a-cursor>
+            <a-entity id="timer" text="value: Tempo: 0m 0s; align: center; color: black" position="0 -0.5 -1.5"
+                scale="1.5 1.5 1.5">
+            </a-entity>
+        </a-camera>
+        <a-lod>
+            <a-entity gltf-model="model_high_res.glb" distance="0 10"></a-entity> <!-- High resolution -->
+            <a-entity gltf-model="model_low_res.glb" distance="10 50"></a-entity> <!-- Low resolution -->
+        </a-lod>
+        <!--Illuminazione scena -->
+        <a-light type="ambient" color="#fff" intensity="1"></a-light>
+        <a-sky color="#87CEFA"></a-sky>
+        <!--Suono-->
+        <a-entity sound="src: #page-sound; autoplay: true; loop: true"></a-entity>
+<audio id="successSound" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/correct-6033.mp3?v=1738242672801"></audio>
+<audio id="errorSound" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/wrong-47985.mp3?v=1738242678493"></audio>
+
+
+        <!--Setup ambiente-->
+
+        <!--Schermata iniziale-->
+<a-entity id="instructionScreen" position="1.08921 3.85959 -5.76513" visible="" scale="1.338 1.338 1.338" rotation="0 0.894 0">
+            <a-plane width="4" height="3.5" color="black" opacity="0.8"></a-plane>
+            <a-text value="Benvenuto/a!
+               Hai appena scoperto/a una vecchia scuola chiusa da decenni. Si dice che chi riesce a completare gli enigmi lasciati dal suo enigmatico custode venga premiato con un antico segreto: il potere di controllare il tempo stesso. 
+              Ma attenzione, ogni errore ti fa perdere preziosi secondi della tua memoria. 
+                          Raccogli indizi, risolvi enigmi e attraversa le stanze, sbloccando un pezzo del mistero alla volta, prima che il tempo scada per sempre.
+                            L'inizio del tuo viaggio e' davanti ai tuoi occhi. Alcuni schermi nascondono più di cio' che mostrano... Sei pronto/a?" align="center" position="0 0.5 0.01" color="white" width="3"></a-text>
+            <!-- Pulsante "Continue" -->
+            <a-entity id="continueButton" geometry="primitive: plane; height: 0.3; width: 2" material="color: #4CAF50" position="0 -0.9 0" class="clickable" onclick="hideInstructionScreen()">
+                <a-text value="Continue" align="center" position="0 0 0.01" color="white"></a-text>
+            </a-entity>
+        </a-entity>
+
+        <!--Scena 1 -->
+      <a-entity id="questionBox" position="1.40138 0.80683 2.76604" rotation="0 180 0" visible="false" scale="0.897 0.897 6.705">
+            <a-text value="Chi invento' il Macintosh?" align="center" position="0 2 0" color="black"></a-text>
+            <a-entity id="answer1" geometry="primitive: plane; height: 0.5; width: 1.5" material="color: #4CAF50" position="0 1.5 0" class="clickable" onclick="checkAnswer('1')">
+                <a-text value="Steve Wozniak" align="center" position="" color="white"></a-text>
+            </a-entity>
+            <a-entity id="answer2" geometry="primitive: plane; height: 0.5; width: 1.5" material="color: #F44336" position="0 1 0" class="clickable" onclick="checkAnswer('2')">
+                <a-text value="Tim Cook" align="center" position="" color="white"></a-text>
+            </a-entity>
+            <a-entity id="answer3" geometry="primitive: plane; height: 0.5; width: 1.5" material="color: #FFC107" position="0 0.5 0" class="clickable" onclick="checkAnswer('3')">
+                <a-text value="Steve Jobs" align="center" position="" color="white"></a-text>
+            </a-entity>
+        </a-entity>
+        <!-- Schermata di conferma risposta corretta -->
+<a-entity id="correctAnswerScreen" position="-0.01989 1.82981 1.84866" rotation="0 180 0" visible="false">
+            <a-plane width="4" height="2" color="green" opacity="0.8"></a-plane>
+            <a-text value="Bingo! Hai sbloccato un nuovo indizio. Continua cosi'!" align="center" position="0 0.5 0.01" color="white" width="3"></a-text>
+        </a-entity>
+        <a-entity id="wrongAnswerScreen" position="-0.01989 1.82981 1.84866" rotation="0 180 0" visible="false">
+            <a-plane width="4" height="2" color="red" opacity="0.8"></a-plane>
+            <a-text
+                value="Ops! Se non trovi l’indizio nascosto, non riuscirai ad accedere alla prossima stanza e rimarrai bloccato qui."
+                align="center" position="0 0.5 0.01" color="white" width="3"></a-text>
+        </a-entity>
+        <!--Scena 1 -->
+        
+      <!--Schermata Indovinello-->
+   <a-entity id="riddleScreen" position="-3.53729 1.91931 0.26448" visible="false" scale="1.33794 1.33794 1.33794" rotation="0 89.92286115680706 0">
+            <a-plane width="4" height="2" color="yellow" opacity="0.5"></a-plane>
+            <a-text value="Indizio:
+                Sono sempre presente in classe, ma non vado mai a lezione. I miei colori preferiti sono il bianco, nero e verde. Indovina chi sono!" align="center" position="0 0.5 0.01" color="black" width="3"></a-text>
+        </a-entity>
+
+        <!-- Scena 2 -->
+  <a-entity id="passwordBox" position="0.05991 0.91383 0.96498" rotation="0 179.31860114209374 0.08" scale="" visible="false">
+            <a-text value=" Se indovini, conquisti subito il 50% del gioco, avvicinandoti alla vittoria!
+ Se sbagli, potresti perdere un vantaggio e rimanere bloccato piu' a lungo...
+                           Indovina la password:" align="center" position="0 2.5 0" color="black" text="value: Se indovini, conquisti subito il 50% del gioco, avvicinandoti alla vittoria!
+ Se sbagli, potresti perdere un vantaggio e rimanere bloccato piu' a lungo...
+                           Indovina la password:"></a-text>
+            <a-entity id="answer1" geometry="primitive: plane; height: 0.5; width: 1.5" material="color: #4CAF50" position="0 1.5 0" class="clickable" onclick="checkPassword('1')">
+                <a-text value="Lavagna" align="center" position="" color="white"></a-text>
+            </a-entity>
+            <a-entity id="answer2" geometry="primitive: plane; height: 0.5; width: 1.5" material="color: #F44336" position="0 1 0" class="clickable" onclick="checkPassword('2')">
+                <a-text value="Insegnante" align="center" position="" color="white"></a-text>
+            </a-entity>
+            <a-entity id="answer3" geometry="primitive: plane; height: 0.5; width: 1.5" material="color: #FFC107" position="0 0.5 0" class="clickable" onclick="checkPassword('3')">
+                <a-text value="Banco" align="center" position="" color="white"></a-text>
+            </a-entity>
+        </a-entity>
+        <!-- Schermata di conferma risposta corretta -->
+     <a-entity id="correctPasswordScreen" position="0.15212 2.01249 1.01492" rotation="0 180 0" scale="0.88 0.93 1" visible="false">
+            <a-plane width="4" height="2" color="green" opacity="0.8"></a-plane>
+            <a-text value="Accesso consentito! Usa la lavagna per scrivere qualcosa... o chissa'!" align="center" position="0 0.5 0.01" color="white" width="3"></a-text>
+        </a-entity>
+        <a-entity id="wrongPasswordScreen" position="0.15212 2.01249 1.01492" rotation="0 180 0" scale="0.88 0.93 1"
+            visible="false">
+            <a-plane width="4" height="2" color="red" opacity="0.8"></a-plane>
+            <a-text
+                value="Password errata. Non ti preoccupare, leggi attentamente il post-it e potrai trovare un indizio cruciale che ti guidera' verso la soluzione"
+                align="center" position="0 0.5 0.01" color="white" width="3"></a-text>
+        </a-entity>
+        <!-- Scena 2 -->
+
+    </a-scene>
+
+
+    <!-- custom js -->
+    <script>
+        // Funzione per nascondere la schermata di istruzioni al clic su "Continue"
+        function hideInstructionScreen() {
+            var instructionScreen = document.getElementById('instructionScreen');
+
+
+            // Animazione di dissolvenza
+            instructionScreen.setAttribute('animation', 'property: opacity; from: 1; to: 0; dur: 1000; easing: easeInOutQuad');
+
+            // Nasconde la schermata e mostra il trigger dell'enigma dopo l'animazione
+            setTimeout(() => {
+                instructionScreen.setAttribute('visible', false);
+
+
+            }, 1000);
+        }
+
+        // Funzione per mostrare l'enigma della TV
+        function showQuestion() {
+            console.log("showQuestion called");
+            hideAllEnigmas();  // Nasconde eventuali enigmi attivi
+            var questionBox = document.getElementById('questionBox');
+            questionBox.setAttribute('visible', true);
+        }
+
+    // Funzione per controllare la risposta
+function checkAnswer(answer) {
+    var questionBox = document.getElementById('questionBox');
+    var correctAnswerScreen = document.getElementById('correctAnswerScreen');
+    var wrongAnswerScreen = document.getElementById('wrongAnswerScreen');
+    var successSound = document.getElementById('successSound');
+    var errorSound = document.getElementById('errorSound');
+
+    // Nasconde la schermata della domanda
+    questionBox.setAttribute("visible", false);
+
+    if (answer === '3') {  // Se la risposta è corretta
+        correctAnswerScreen.setAttribute("visible", true);
+        wrongAnswerScreen.setAttribute("visible", false);
+        successSound.play();
+
+        setTimeout(() => {
+            correctAnswerScreen.setAttribute("visible", false);
+        }, 8000);
+    } else {  
+        wrongAnswerScreen.setAttribute("visible", true);
+        correctAnswerScreen.setAttribute("visible", false);
+        errorSound.play();
+
+        setTimeout(() => {
+            wrongAnswerScreen.setAttribute("visible", false);
+        }, 8000); 
+    }
+}
+
+
+        // Funzione per mostrare l'enigma del PC portatile
+        function startLaptopEnigma() {
+            console.log("startLaptopEnigma called");
+            hideAllEnigmas();
+            var passwordBox = document.getElementById('passwordBox');
+            passwordBox.setAttribute('visible', true);
+        }
+
+    // Funzione per controllare la risposta
+function checkPassword(answer) {
+    var passwordBox = document.getElementById('passwordBox');
+    var correctPasswordScreen = document.getElementById('correctPasswordScreen');
+    var wrongPasswordScreen = document.getElementById('wrongPasswordScreen');
+    var successSound = document.getElementById('successSound');
+    var errorSound = document.getElementById('errorSound');
+
+    // Nasconde la schermata della domanda
+    passwordBox.setAttribute("visible", false);
+
+    if (answer === '1') {  // Se la risposta è corretta
+        correctPasswordScreen.setAttribute("visible", true);
+        wrongPasswordScreen.setAttribute("visible", false);
+        successSound.play();
+
+        setTimeout(() => {
+            correctPasswordScreen.setAttribute("visible", false);
+        }, 8000);
+    } else {  
+        wrongPasswordScreen.setAttribute("visible", true);
+        correctPasswordScreen.setAttribute("visible", false);
+        errorSound.play();
+
+        setTimeout(() => {
+            wrongPasswordScreen.setAttribute("visible", false);
+        }, 8000); 
+    }
+}
+
+        // Funzione per nascondere tutti gli enigmi
+        function hideAllEnigmas() {
+            document.getElementById('questionBox').setAttribute('visible', false);
+            document.getElementById('passwordBox').setAttribute('visible', false);
+        }
+
+        // Funzione per mostrare l'indovinello
+        function showRiddle() {
+            console.log("showRiddle called");
+            hideAllEnigmas();
+            var riddleScreen = document.getElementById('riddleScreen');
+            riddleScreen.setAttribute('visible', true);
+
+            riddleScreen.setAttribute('animation', 'property: opacity; from: 1; to: 0; dur: 10000; easing: easeInOutQuad');
+        }
+
+        // Funzione per mostrare messaggi compatibili con VR e desktop
+        function showMessageVR(message) {
+            if (AFRAME.utils.device.isMobileVR()) {
+
+                var messageBox = document.createElement('a-text');
+                messageBox.setAttribute('value', message);
+                messageBox.setAttribute('position', '1.1 1 3.06');
+                messageBox.setAttribute('align', 'center');
+                messageBox.setAttribute('color', 'black');
+                var scene = document.querySelector('a-scene');
+                scene.appendChild(messageBox);
+
+
+                setTimeout(() => {
+                    scene.removeChild(messageBox);
+                }, 3000);
+            } else {
+                // Mostra il messaggio come alert su desktop
+                alert(message);
+            }
+        }
+
+        //Suono
+        function startAudio() {
+            const musicEntity = document.querySelector('a-entity[sound]');
+            musicEntity.components.sound.playSound();
+        }
+      
+
+        //Funzione per andare alla stanza di arte
+        function goToArtRoom() {
+            window.location.href = 'artroom.html';
+        }
+    </script>
+
+</body>
+
+</html>

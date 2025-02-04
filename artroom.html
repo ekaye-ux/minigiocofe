@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Room VR - Aula</title>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-event-set-component@5.0.0/dist/aframe-event-set-component.min.js"></script>
+    <script src="https://unpkg.com/super-hands@^3.0.3/dist/super-hands.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe-keyboard/dist/aframe-keyboard.min.js"></script>
+    <script src="common.js"></script>
+</head>
+
+<body>
+
+    <a-scene stats="true" vr-mode-ui="enabled: false" renderer="antialias: true">
+        <!--Setup ambiente-->
+        <a-entity oculus-touch-controls></a-entity>
+        <!--Assets-->
+        <a-asset-item id="artroom" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/demoscene.glb?v=1737380944582" preload="true"></a-asset-item>
+        <a-assets>
+            <img id="clueImage" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/dali.png?v=1737380949915">
+        </a-assets>
+        <a-assets id="painting" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/painting.glb?v=1737381506763" preload="true"></a-assets>
+        <a-assets>
+            <audio id="page-sound" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/page2.mp3?v=1737667832199" preload="auto"></audio>
+        </a-assets>
+        <!--Scena-->
+        <a-entity gltf-model="#artroom" position="0.13852 0.27152 -0.14756" scale="1 1 1"></a-entity>
+     <a-entity gltf-model="#painting" position="2.2353 1.25599 -0.54046" scale="1.23 1.77 1.18436" rotation="15.929945578022279 -125.9573228081748 -0.31226199834629864"></a-entity>
+        <!-- Telecamera -->
+        <a-camera position="0 1.6 9">
+            <a-cursor id="cursor" raycaster="objects: .clickable" color="#FF0000"></a-cursor>
+            <a-entity id="timer" text="value: Tempo: 0m 0s; align: center; color: black" position="0 -0.5 -1.5"
+                scale="1.5 1.5 1.5">
+            </a-entity>
+        </a-camera>
+        <!--Illuminazione scena -->
+        <a-light type="ambient" color="#fff" intensity="1"></a-light>
+        <a-sky color="#87CEFA"></a-sky>
+        <!--Suono-->
+        <a-entity sound="src: #page-sound; autoplay: true; loop: true"></a-entity>
+<audio id="successSound" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/correct-6033.mp3?v=1738242672801"></audio>
+<audio id="errorSound" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/wrong-47985.mp3?v=1738242678493"></audio>
+<audio id="clueSound" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/news-ting-6832.mp3?v=1738244274596"></audio>
+
+        <!--Setup ambiente-->
+
+
+        <!-- Schermata iniziale di istruzioni -->
+        <a-entity id="instructionScreen" position="-4.616 3.708 0.207" visible="" scale="1.33794 1.33794 1.33794"
+            rotation="0 89.92286115680706 0">
+            <a-plane width="4" height="2" color="black" opacity="0.8"></a-plane>
+            <a-text
+                value="Congratulazioni! Hai sbloccato una stanza segreta. Risolvi il mistero in 60 secondi per scoprire l'ultima stanza del mistero!"
+                align="center" position="0 0.5 0.01" color="white" width="3"></a-text>
+            <!-- Pulsante "Continue" -->
+            <a-entity id="continueButton" geometry="primitive: plane; height: 0.5; width: 2" material="color: #4CAF50"
+                position="0 -0.5 0" class="clickable" onclick="hideInstructionScreen()">
+                <a-text value="Continue" align="center" position="0 0 0.01" color="white"></a-text>
+            </a-entity>
+        </a-entity>
+
+        <!-- Box per attivare l'enigma 1-->
+        <a-box id="startEnigmaTrigger" position="-0.2 2 -1.5" width="1" height="1" depth="1" color="white" opacity="0"
+            class="clickable" onclick="called()" visible="false"></a-box>
+        <!-- Domanda a scelta multipla -->
+        <a-entity id="questionBox" position="-2.5 2 -1.7" visible="false">
+            <a-plane position="0 1 0" width="3" height="1" material="color: white; side: double" opacity="0"></a-plane>
+            <a-text
+                value="Dipingevo la realta', ma non cosi come era: la mia visione era deformata, spesso inquietante. Le mie opere parlano di orologi molli e di sogni"
+                align="center" position="0 1.5 0" color="black"></a-text>
+            <!-- Risposte -->
+            <a-entity id="answer1" geometry="primitive: plane; height: 0.5; width: 2"
+                material="color: #4CAF50; side: double" position="0 0.5 0" class="clickable" onclick="checkAnswer('1')">
+                <a-text value="Salvador Dali" align="center" position="0 0 0.01" color="white"></a-text>
+            </a-entity>
+            <a-entity id="answer2" geometry="primitive: plane; height: 0.5; width: 2"
+                material="color: #F44336; side: double" position="0 0 0" class="clickable"
+                onclick="checkAnswer('2')">
+                <a-text value="Leonardo Da Vinci" align="center" position="0 0 0.01" color="white"></a-text>
+            </a-entity>
+            <a-entity id="answer3" geometry="primitive: plane; height: 0.5; width: 2"
+                material="color: #FFC107; side: double" position="0 -0.5 0" class="clickable"
+                onclick="checkAnswer('3')">
+                <a-text value="Frida Kahlo" align="center" position="0 0 0.01" color="white"></a-text>
+            </a-entity>
+        </a-entity>
+        <!--Box per attivare l'enigma 2-->
+       <a-box id="clueBox" position="2.29349 1.35599 -0.55472" rotation="15.929945578022279 -125.9573228081748 -0.31226199834629864" width="1.77" height="1.23" depth="0.1" color="white"></a-box>
+        
+      
+      <!-- Schermata di scelta: Opzione Sicura vs Opzione Rischiosa -->
+    <a-entity id="framingChoice" position="-0.62885 3.11431 -1.98847" rotation="0 2.579455993678966 0" visible="false">
+            <a-plane width="4" height="2" color="blue" opacity="0"></a-plane>
+            <a-text value="Scegli come ottenere l'indizio!" align="center" position="0 1 0.01" color="white" width="3"></a-text>
+
+            <!-- Opzione Sicura (100% di un indizio parziale) -->
+            <a-entity id="safeOption" geometry="primitive: plane; height: 0.5; width: 4.5" material="side: double; color: #F44336" position="0 0.5 0" class="clickable" onclick="chooseSafeOption()">
+                <a-text value="Ottieni subito l'80% dell'indizio" align="center" position="0 0 0.01" color="white"></a-text>
+            </a-entity>
+
+            <!-- Opzione Rischiosa (50% di un indizio completo o nulla) -->
+            <a-entity id="riskyOption" geometry="primitive: plane; height: 0.5; width: 4.5" material="side: double; color: #4CAF50" position="" class="clickable" onclick="chooseRiskyOption()">
+                <a-text value="Rischia: 50% indizio completo o 50% nulla" align="center" position="0 0 0.01" color="white"></a-text>
+            </a-entity>
+        </a-entity>
+
+        <!-- Schermata di conferma risposta corretta -->
+        <a-entity id="correctAnswerScreen" position="-2.5 2 -1.7" visible="false">
+            <a-plane width="4" height="2" color="green" opacity="0.8"></a-plane>
+            <a-text
+                value="Risposta corretta! Hai trovato un indizio nascosto: guarda il dipinto. Viaggia nello SPAZIO per scoprire l'ultima avventura!"
+                align="center" position="0 0.5 0.01" color="white" width="3"></a-text>
+        </a-entity>
+        <a-entity id="wrongAnswerScreen" position="-2.5 2 -1.7" visible="false">
+            <a-plane width="4" height="2" color="red" opacity="0.8"></a-plane>
+            <a-text value="Oh no! Hai sbagliato risposta, rimarrai bloccata in questa stanza per sempre!" align="center"
+                position="0 0.5 0.01" color="white" width="3"></a-text>
+        </a-entity>
+        <a-entity id="clueAnswerScreen" position="-2.5 2 -1.7" visible="false">
+            <a-plane width="4" height="2" color="green" opacity="0.8"></a-plane>
+            <a-text
+                value="Risposta corretta! Hai trovato un indizio nascosto: clicca sul dipinto apparso e vai nell'ultima stanza degli enigmi. Il primo enigma riguarda il Sistema Solare."
+                align="center" position="0 0.5 0.01" color="white" width="3"></a-text>
+        </a-entity>
+        <!--Box per tornare nell'aula didattica-->
+        <a-box position="2.20815 1.04599 -0.60179" scale="1.23 1.77 0.404"
+            rotation="15.929945578022279 -125.9573228081748 -0.31226199834629864" color="white" opacity="0"  class="clickable"
+            onclick="goToChemlab()"></a-box>
+    </a-scene>
+
+    <script>
+        // Funzione per nascondere la schermata di istruzioni al clic su "Continue"
+        function hideInstructionScreen() {
+            var instructionScreen = document.getElementById('instructionScreen');
+
+
+            // Animazione di dissolvenza
+            instructionScreen.setAttribute('animation', 'property: opacity; from: 1; to: 0; dur: 1000; easing: easeInOutQuad');
+
+            // Nasconde la schermata e mostra il trigger dell'enigma dopo l'animazione
+            setTimeout(() => {
+                instructionScreen.setAttribute('visible', false);
+
+            }, 1000);
+        }
+
+        // Funzione chiamata al clic sull'A-Box per mostrare la questionBox
+        function called() {
+            console.log('A-Box clicked, showing questionBox');
+            var questionBox = document.getElementById('questionBox');
+            questionBox.setAttribute('visible', true);
+        }
+
+        // Funzione per controllare la risposta
+        function checkAnswer(answerId) {
+            var correctAnswer = '1';
+            var successSound = document.getElementById('successSound');
+            var errorSound = document.getElementById('errorSound');
+
+            if (answerId === correctAnswer) {
+                // Nasconde la domanda
+                document.querySelector("#questionBox").setAttribute("visible", false);
+                document.querySelector("#framingChoice").setAttribute("visible", true);
+            } else {
+                document.querySelector("#questionBox").setAttribute("visible", false);
+                document.querySelector("#wrongAnswerScreen").setAttribute("visible", true);
+                errorSound.play();
+                setTimeout(() => {
+                    document.querySelector("#wrongAnswerScreen").setAttribute("visible", false);
+                }, 5000);
+            }
+        }
+
+        // Funzione per la scelta sicura
+        function chooseSafeOption() {
+            document.querySelector("#framingChoice").setAttribute("visible", false);
+            document.querySelector("#correctAnswerScreen").setAttribute("visible", true);
+            var successSound = document.getElementById('successSound');
+
+            setTimeout(() => {
+                document.querySelector("#correctAnswerScreen").setAttribute("visible", false);
+                showClueImage();
+                successSound.play()
+            }, 5000);
+        }
+
+        // Funzione per la scelta rischiosa
+        function chooseRiskyOption() {
+            document.querySelector("#framingChoice").setAttribute("visible", false);
+            var successSound = document.getElementById('successSound');
+            var errorSound = document.getElementById('errorSound');
+
+           let outcome = Math.floor(Math.random() * 2); // Genera 0 o 1
+console.log(outcome);
+
+            if (outcome === 0) {
+                // 50% di successo → Indizio completo
+                document.querySelector("#clueAnswerScreen").setAttribute("visible", true);
+                showClueImage();
+                successSound.play()
+            } else {
+                // 50% di fallimento → Nessun indizio
+                document.querySelector("#wrongAnswerScreen").setAttribute("visible", true);
+                errorSound.play();
+            }
+
+            setTimeout(() => {
+                document.querySelector("#correctAnswerScreen").setAttribute("visible", false);
+                document.querySelector("#wrongAnswerScreen").setAttribute("visible", false);
+ document.querySelector("#clueAnswerScreen").setAttribute("visible", false);
+            }, 5000);
+        }
+        // Funzione per far apparire l'indizio con suono
+        function showClueImage() {
+            var clueBox = document.getElementById('clueBox');
+            var clueImage = document.querySelector('#clueImage');
+            var clueSound = document.getElementById('clueSound');
+
+            clueImage.addEventListener('load', () => {
+                clueBox.setAttribute('src', '#clueImage');
+                clueSound.play(); 
+            });
+
+            if (clueImage.complete) {
+                clueBox.setAttribute('src', '#clueImage');
+                clueSound.play(); 
+            }
+        }
+
+        // Funzione per mostrare messaggi compatibili con VR e desktop
+        function showMessageVR(message) {
+            if (AFRAME.utils.device.isMobileVR()) {
+
+                var messageBox = document.createElement('a-text');
+                messageBox.setAttribute('value', message);
+                messageBox.setAttribute('position', '0 2 -2');
+                messageBox.setAttribute('align', 'center');
+                messageBox.setAttribute('color', 'black');
+                var scene = document.querySelector('a-scene');
+                scene.appendChild(messageBox);
+
+
+                setTimeout(() => {
+                    scene.removeChild(messageBox);
+                }, 5000);
+            } else {
+
+                alert(message);
+            }
+        }
+
+        //Funzione suono
+        window.addEventListener('load', () => {
+            const audioElement = document.querySelector('a-entity[sound]');
+            const soundComponent = audioElement.components.sound;
+
+
+            setTimeout(() => {
+                soundComponent.playSound();
+            }, 500);
+        });
+
+        window.addEventListener('beforeunload', () => {
+            const audioElement = document.querySelector('a-entity[sound]');
+            const soundComponent = audioElement.components.sound;
+
+
+            if (soundComponent) {
+                soundComponent.stopSound();
+            }
+        });
+
+
+        //Funzione per andare alla stanza precedente
+        function goToChemlab() {
+            window.location.href = 'chemlab.html';
+        }
+
+    </script>
+
+
+</body>
+
+</html>

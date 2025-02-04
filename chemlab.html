@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Room VR - Aula</title>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-event-set-component@5.0.0/dist/aframe-event-set-component.min.js"></script>
+    <script src="https://unpkg.com/super-hands@^3.0.3/dist/super-hands.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe-keyboard/dist/aframe-keyboard.min.js"></script>
+    <script src="common.js"></script>
+</head>
+
+<body>
+    <a-scene stats="true" vr-mode-ui="enabled: false" renderer="antialias: true">
+        <!--Setup ambiente-->
+        <a-entity oculus-touch-controls></a-entity>
+        <!--Assets-->
+        <a-asset-item id="chemlab" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/chemlab20.glb?v=1737817490452" preload="true"></a-asset-item>
+        <a-assets>
+            <audio id="page-sound" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/page3.mp3?v=1737667836247" preload="auto"></audio>
+        </a-assets>
+        <!--Scena-->
+       <a-entity gltf-model="#chemlab" position="0.13852 0.27152 -0.14756" scale=""></a-entity>
+        <!-- Telecamera -->
+        <a-camera position="0 1.6 9">
+            <a-cursor id="cursor" raycaster="objects: .clickable" color="#FF0000"></a-cursor>
+            <a-entity id="timer" text="value: Tempo: 0m 0s; align: center; color: white" position="0 -0.5 -1.5"
+                scale="1.5 1.5 1.5">
+            </a-entity>
+        </a-camera>
+        <!--Illuminazione scena -->
+        <a-light type="ambient" color="#fff" intensity="1"></a-light>
+        <a-sky color="#87CEFA"></a-sky>
+        <!--Suono-->
+        <a-entity sound="src: #page-sound; autoplay: true; loop: true"></a-entity>
+      <audio id="successSound" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/correct-6033.mp3?v=1738242672801"></audio>
+<audio id="errorSound" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/wrong-47985.mp3?v=1738242678493"></audio>
+<audio id="winSound" src="https://cdn.glitch.global/5c13411a-33c4-4ff2-9641-fda08bbd13d2/winning-218995.mp3?v=1738690382253"></audio>
+        <!--Setup ambiente-->
+
+        <!-- Schermata iniziale di istruzioni -->
+        <a-entity id="instructionScreen" position="-3.2 3.32 0.7" visible="" scale="1.33794 1.33794 1.33794"
+            rotation="0 89.92286115680706 0">
+            <a-plane width="4" height="2" color="black" opacity="0.8"></a-plane>
+            <a-text
+                value="Congratulazioni! Hai sbloccato l'ultima stanza segreta. Il tempo scorre inesorabilmente! Non lasciare che i tuoi sforzi vengano sprecati!"
+                align="center" position="0 0.5 0.01" color="white" width="3"></a-text>
+            <!-- Pulsante "Continue" -->
+            <a-entity id="continueButton" geometry="primitive: plane; height: 0.5; width: 2" material="color: #4CAF50"
+                position="0 -0.5 0" class="clickable" onclick="hideInstructionScreen()">
+                <a-text value="Continue" align="center" position="0 0 0.01" color="white"></a-text>
+            </a-entity>
+        </a-entity>
+
+       <!-- Box per attivare l'enigma 1 -->
+  <a-box id="SolarEnigma" position="-0.667 2.016 -3.451" color="blue" opacity="0" scale="1.266 0.942 1.381" class="clickable" onclick="showQuestion()" visible="false"></a-box>
+        <!--Scena 1-->
+      <a-entity id="questionBox" position="-2.24462 0.39276 -3.25541" rotation="" visible="false">
+            <a-text value="Ho un cuore gassoso e freddo, adornato di cerchi splendenti,
+            ma non sono il piu' vicino ne' il piu' lontano dal sole ardente.
+            Chi sono?" align="center" position="0 3 0" color="black"></a-text>
+            <a-entity id="answer1" geometry="primitive: plane; height: 0.5; width: 1.5" material="color: #4CAF50" position="0 2 0" class="clickable" onclick="checkAnswer('1')">
+                <a-text value="Pluto" align="center" position="" color="white"></a-text>
+            </a-entity>
+            <a-entity id="answer2" geometry="primitive: plane; height: 0.5; width: 1.5" material="color: #F44336" position="0 1.5 0" class="clickable" onclick="checkAnswer('2')">
+                <a-text value="Marte" align="center" position="" color="white"></a-text>
+            </a-entity>
+            <a-entity id="answer3" geometry="primitive: plane; height: 0.5; width: 1.5" material="color: #FFC107" position="0 1 0" class="clickable" onclick="checkAnswer('3')">
+                <a-text value="Saturno" align="center" position="" color="white"></a-text>
+            </a-entity>
+        </a-entity>
+        <!-- Schermata di conferma risposta corretta -->
+        <a-entity id="correctAnswerScreen" position="-3.2 3.32 0.7" visible="false" scale="1.33794 1.33794 1.33794"
+            rotation="0 89.92286115680706 0">
+            <a-plane width="4" height="2" color="green" opacity="0.8"></a-plane>
+            <a-text value="Ottimo lavoro! Saturno e i suoi ANELLI nascondono il segreto che porta all'ultimo enigma."
+                align="center" position="0 0.5 0.01" color="white" width="3"></a-text>
+        </a-entity>
+        <a-entity id="wrongAnswerScreen" position="-3.2 3.32 0.7" visible="false" scale="1.33794 1.33794 1.33794"
+            rotation="0 89.92286115680706 0">
+            <a-plane width="4" height="2" color="red" opacity="0.8"></a-plane>
+            <a-text
+                value="Ops! Non risolvendo questo enigma in tempo, la stanza resterà chiusa e non potrai completare con successo."
+                align="center" position="0 0.5 0.01" color="white" width="3"></a-text>
+        </a-entity>
+        <!--Scena 1 -->
+
+        <!--Box per attivare l'enigma 2-->
+    <a-box id="DnaEnigma" position="-0.717 0.996 3.259" color="blue" opacity="0" scale="1.405 0.755 0.795" class="clickable" onclick="showQuestion2()" visible="false"></a-box>
+        <!--Scena 2-->
+       <a-entity id="question2Box" position="-1.047 1.226 3.349" rotation="0 180 0" visible="false" scale="1.02 1 1">
+            <a-text value="L'acronimo DNA sta per?" align="center" position="0 2 0" color="black"></a-text>
+            <a-entity id="answerr1" geometry="primitive: plane; height: 0.5; width: 3" material="color: #4CAF50" position="0 1.5 0" class="clickable" onclick="checkAnswerr('1')">
+                <a-text value="Dinamica Nucleica Acida" align="center" position="" color="white"></a-text>
+            </a-entity>
+            <a-entity id="answerr2" geometry="primitive: plane; height: 0.5; width: 3" material="color: #F44336" position="0 1 0" class="clickable" onclick="checkAnswerr('2')">
+                <a-text value="Acido Deossiribonucleico" align="center" position="" color="white"></a-text>
+            </a-entity>
+            <a-entity id="answerr3" geometry="primitive: plane; height: 0.5; width: 3" material="color: #FFC107" position="0 0.5 0" class="clickable" onclick="checkAnswerr('3')">
+                <a-text value="Deossiribonucleico Acido" align="center" position="" color="white"></a-text>
+            </a-entity>
+        </a-entity>
+        <!-- Schermata di conferma risposta corretta -->
+        <a-entity id="correctAnswerrScreen" position="-3.2 3.32 0.7" scale="1.33794 1.33794 1.33794"
+            rotation="0 89.92286115680706 0" visible="false">
+            <a-plane width="4" height="2" color="black" opacity="0.8"></a-plane>
+            <a-text value="Congratulazioni! Hai completato in tempo la sfida! Ora sei libero" align="center"
+                position="0 0.5 0.01" color="white" width="3"></a-text>
+        </a-entity>
+        <a-entity id="wrongAnswerrScreen" position="-3.2 3.32 0.7" scale="1.33794 1.33794 1.33794"
+            rotation="0 89.92286115680706 0" visible="false">
+            <a-plane width="4" height="2" color="red" opacity="0.8"></a-plane>
+            <a-text value="Oh no! Hai sbagliato risposta, rimarrai bloccata in questa stanza per sempre!" align="center"
+                position="0 0.5 0.01" color="white" width="3"></a-text>
+        </a-entity>
+    </a-scene>
+
+    <script>
+        // Funzione per nascondere la schermata di istruzioni al clic su "Continue"
+        function hideInstructionScreen() {
+            var instructionScreen = document.getElementById('instructionScreen');
+
+
+            // Aggiungi animazione di dissolvenza
+            instructionScreen.setAttribute('animation', 'property: opacity; from: 1; to: 0; dur: 1000; easing: easeInOutQuad');
+
+            // Nascondi la schermata e mostra il trigger dell'enigma dopo l'animazione
+            setTimeout(() => {
+                instructionScreen.setAttribute('visible', false);
+
+            }, 1000);
+        }
+
+
+        // Funzione per mostrare l'enigma di Saturno
+        function showQuestion() {
+            console.log("showQuestion called");
+            hideAllEnigmas();
+            var questionBox = document.getElementById('questionBox');
+            questionBox.setAttribute('visible', true);
+        }
+
+    // Funzione per controllare la risposta
+function checkAnswer(answer) {
+    var questionBox = document.getElementById('questionBox');
+    var correctAnswerScreen = document.getElementById('correctAnswerScreen');
+    var wrongAnswerScreen = document.getElementById('wrongAnswerScreen');
+    var successSound = document.getElementById('successSound');
+    var errorSound = document.getElementById('errorSound');
+
+    // Nasconde la schermata della domanda
+    questionBox.setAttribute("visible", false);
+
+    if (answer === '3') {  // Se la risposta è corretta
+        correctAnswerScreen.setAttribute("visible", true);
+        wrongAnswerScreen.setAttribute("visible", false);
+        successSound.play();
+
+        setTimeout(() => {
+            correctAnswerScreen.setAttribute("visible", false);
+        }, 8000);
+    } else {  
+        wrongAnswerScreen.setAttribute("visible", true);
+        correctAnswerScreen.setAttribute("visible", false);
+        errorSound.play();
+
+        setTimeout(() => {
+            wrongAnswerScreen.setAttribute("visible", false);
+        }, 8000); 
+    }
+}
+
+
+        // Funzione per mostrare l'enigma del DNA
+        function showQuestion2() {
+            console.log("showQuestion2 called");
+            hideAllEnigmas();
+            var question2Box = document.getElementById('question2Box');
+            question2Box.setAttribute('visible', true);
+        }
+
+    // Funzione per controllare la risposta
+function checkAnswerr(answer) {
+    var question2Box = document.getElementById('question2Box');
+    var correctAnswerrScreen = document.getElementById('correctAnswerrScreen');
+    var wrongAnswerrScreen = document.getElementById('wrongAnswerrScreen');
+    var winSound = document.getElementById('winSound');
+    var errorSound = document.getElementById('errorSound');
+
+    // Nasconde la schermata della domanda
+    question2Box.setAttribute("visible", false);
+
+    if (answer === '2') {  // Se la risposta è corretta
+        correctAnswerrScreen.setAttribute("visible", true);
+        wrongAnswerrScreen.setAttribute("visible", false);
+        winSound.play();
+
+        setTimeout(() => {
+            correctAnswerrScreen.setAttribute("visible", false);
+        }, 8000);
+    } else {
+        wrongAnswerrScreen.setAttribute("visible", true);
+        correctAnswerrScreen.setAttribute("visible", false);
+        errorSound.play();
+
+        setTimeout(() => {
+            wrongAnswerScreen.setAttribute("visible", false);
+        }, 8000);
+    }
+}
+
+
+        // Funzione per nascondere tutti gli enigmi
+        function hideAllEnigmas() {
+            document.getElementById('questionBox').setAttribute('visible', false);
+            document.getElementById('question2Box').setAttribute('visible', false);
+        }
+
+        // Funzione per mostrare messaggi compatibili con VR e desktop
+        function showMessageVR(message) {
+            if (AFRAME.utils.device.isMobileVR()) {
+                // Mostra il messaggio direttamente nel mondo VR
+                var messageBox = document.createElement('a-text');
+                messageBox.setAttribute('value', message);
+                messageBox.setAttribute('position', '0 2 -2');  // Davanti alla telecamera
+                messageBox.setAttribute('align', 'center');
+                messageBox.setAttribute('color', 'black');
+                var scene = document.querySelector('a-scene');
+                scene.appendChild(messageBox);
+
+                // Rimuove il messaggio dopo 3 secondi
+                setTimeout(() => {
+                    scene.removeChild(messageBox);
+                }, 3000);
+            } else {
+                // Mostra il messaggio come alert su desktop
+                alert(message);
+            }
+        }
+
+        //Funzione Suono
+        window.addEventListener('load', () => {
+            const audioElement = document.querySelector('a-entity[sound]');
+            const soundComponent = audioElement.components.sound;
+
+            // Fai partire il suono con un leggero delay per un effetto
+            setTimeout(() => {
+                soundComponent.playSound();
+            }, 500);
+        });
+
+        window.addEventListener('beforeunload', () => {
+            const audioElement = document.querySelector('a-entity[sound]');
+            const soundComponent = audioElement.components.sound;
+
+            // Sfumare l'audio quando si lascia la pagina
+            if (soundComponent) {
+                soundComponent.stopSound();
+            }
+        });
+
+    </script>
+</body>
+
+</html>
